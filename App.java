@@ -11,9 +11,10 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Polygon;
 import javafx.stage.Stage;
+import javafx.util.Pair;
 
 import java.io.IOException;
-import java.util.Objects;
+import java.util.ArrayList;
 
 
 public class App extends Application {
@@ -26,14 +27,14 @@ public class App extends Application {
     static int[][] board = new int[BOARD_SIZE][BOARD_SIZE];
     static Button swapButton;
     static int round = 0;
-    static int[] pos = new int[2];
+    static ArrayList<int[]> records = new ArrayList<>();
     static Polygon[][] keyBackground = new Polygon[BOARD_SIZE + 2][BOARD_SIZE + 2];
 
     public static void reinitialize(){
         buttons = new MyButton[BOARD_SIZE + 2][BOARD_SIZE + 2];
         keyBackground = new Polygon[BOARD_SIZE + 2][BOARD_SIZE + 2];
         round = 0;
-        pos = new int[2];
+        records = new ArrayList<>();
     }
     public static class MyButton extends Button{
         MyButton(Polygon keyBackground){
@@ -47,8 +48,7 @@ public class App extends Application {
             this.setOnAction((ActionEvent e) -> {
                 swapButton.setDisable(round != 0);
                 System.out.printf("[%d, %d], %s\n", i, j, (round % 2 == 0)? "RED" : "BLUE");
-                pos[0] = i;
-                pos[1] = j;
+                records.add(new int[]{i, j});
                 switch (round % 2) {
                     case 0 -> {
                         keyBackground[i][j].setFill(Color.RED);
@@ -126,10 +126,11 @@ public class App extends Application {
         swapButton.relocate(BOARD_SIZE*KEY_SIZE*1.5, BOARD_SIZE*KEY_SIZE*1.9);
         swapButton.setOnAction((ActionEvent e) -> {
             System.out.println("swapped");
-            keyBackground[pos[0]][pos[1]].setFill(Color.LIGHTGRAY);
-            keyBackground[pos[1]][pos[0]].setFill(Color.BLUE);
-            buttons[pos[1]][pos[0]].setOnAction(null);
-            buttons[pos[0]][pos[1]].enableOnClick(pos[0], pos[1]);
+            int[] r = records.get(records.size() - 1);
+            keyBackground[r[0]][r[1]].setFill(Color.LIGHTGRAY);
+            keyBackground[r[1]][r[0]].setFill(Color.BLUE);
+            buttons[r[0]][r[1]].enableOnClick(r[0], r[1]);
+            buttons[r[1]][r[0]].setOnAction(null);
             swapButton.setDisable(true);
             round++;
         });
