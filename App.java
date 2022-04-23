@@ -11,7 +11,6 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Polygon;
 import javafx.stage.Stage;
-import javafx.util.Pair;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -93,7 +92,7 @@ public class App extends Application {
             group = new Group();
             for (int i = 0; i < BOARD_SIZE + 2; i++) {
                 HBox hBox;
-                //每一列是一個hbox
+                //每一列是一個hBox
                 hBox = new HBox();
 
                 for (int j = 0; j < BOARD_SIZE + 2; j++) {
@@ -122,6 +121,7 @@ public class App extends Application {
             scene = new Scene(group,3, 3);
             stage.setScene(scene);
         }
+        
         swapButton = new Button("SWAP");
         swapButton.relocate(BOARD_SIZE*KEY_SIZE*1.5, BOARD_SIZE*KEY_SIZE*1.9);
         swapButton.setOnAction((ActionEvent e) -> {
@@ -136,6 +136,7 @@ public class App extends Application {
         });
         swapButton.setDisable(true);
         group.getChildren().add(swapButton);
+        
         //投降按鈕
         Button concedeButton = new Button("CONCEDE");
         concedeButton.relocate(BOARD_SIZE*KEY_SIZE*1.5, BOARD_SIZE*KEY_SIZE*2.1);
