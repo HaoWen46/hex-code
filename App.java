@@ -20,7 +20,7 @@ public class App extends Application {
     //按鍵大小、棋盤大小
     static final int KEY_SIZE = 10, BOARD_SIZE = 11;
     static Stage stage;
-    static Group g;
+    static Group group;
     static Scene scene;
     static MyButton[][] buttons = new MyButton[BOARD_SIZE + 2][BOARD_SIZE + 2];
     static int[][] board = new int[BOARD_SIZE][BOARD_SIZE];
@@ -46,8 +46,7 @@ public class App extends Application {
         public void enableOnClick(int i, int j) {
             this.setOnAction((ActionEvent e) -> {
                 swapButton.setDisable(round != 0);
-                String c = (round % 2 == 0)? "RED" : "BLUE";
-                System.out.printf("[%d, %d], %s\n", i, j, c);
+                System.out.printf("[%d, %d], %s\n", i, j, (round % 2 == 0)? "RED" : "BLUE");
                 pos[0] = i;
                 pos[1] = j;
                 switch (round % 2) {
@@ -91,7 +90,7 @@ public class App extends Application {
 
     public void drawDefault(){
         if (round == 0) {
-            g = new Group();
+            group = new Group();
             for (int i = 0; i < BOARD_SIZE + 2; i++) {
                 HBox hBox;
                 //每一列是一個hbox
@@ -100,27 +99,27 @@ public class App extends Application {
                 for (int j = 0; j < BOARD_SIZE + 2; j++) {
                     //填入邊界六邊形
                     StackPane stack = new StackPane();
+                    boolean hasAction = false;
                     if (i == 0 && j == 0 || i == BOARD_SIZE + 1 && j == BOARD_SIZE + 1) {
                         keyBackground[i][j] = new Hexagon("white");
-                        buttons[i][j] = new MyButton(keyBackground[i][j]);
                     } else if (j == 0 || j == BOARD_SIZE + 1) {
                         keyBackground[i][j] = new Hexagon("blue");
-                        buttons[i][j] = new MyButton(keyBackground[i][j]);
                     } else if (i == 0 || i == BOARD_SIZE + 1) {
                         keyBackground[i][j] = new Hexagon("red");
-                        buttons[i][j] = new MyButton(keyBackground[i][j]);
                     } else {
                         keyBackground[i][j] = new Hexagon("gray");
-                        buttons[i][j] = new MyButton(keyBackground[i][j]);
-                        buttons[i][j].enableOnClick(i, j);
+                        hasAction = true;
                     }
+                    buttons[i][j] = new MyButton(keyBackground[i][j]);
+                    if (hasAction) buttons[i][j].enableOnClick(i, j);
+
                     stack.getChildren().addAll(keyBackground[i][j], buttons[i][j]);
                     hBox.getChildren().add(stack);
                 }
-                hBox.relocate(Math.pow(3.0, 1 / 2) / 2 * KEY_SIZE * i + i * 4, 3.0 / 2 * KEY_SIZE * i);
-                g.getChildren().add(hBox);
+                hBox.relocate(Math.pow(3.0, 1/2) / 2 * KEY_SIZE * i + i * 4, 3.0 / 2 * KEY_SIZE * i);
+                group.getChildren().add(hBox);
             }
-            scene = new Scene(g,3, 3);
+            scene = new Scene(group,3, 3);
             stage.setScene(scene);
         }
         swapButton = new Button("SWAP");
@@ -135,7 +134,7 @@ public class App extends Application {
             round++;
         });
         swapButton.setDisable(true);
-        g.getChildren().add(swapButton);
+        group.getChildren().add(swapButton);
         //投降按鈕
         Button concedeButton = new Button("CONCEDE");
         concedeButton.relocate(BOARD_SIZE*KEY_SIZE*1.5, BOARD_SIZE*KEY_SIZE*2.1);
@@ -147,9 +146,10 @@ public class App extends Application {
             reinitialize();
             drawDefault();
         });
+        group.getChildren().add(concedeButton);
+
         //勝負判斷
         //
-        g.getChildren().add(concedeButton);
 
 
 
