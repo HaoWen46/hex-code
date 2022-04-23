@@ -18,13 +18,11 @@ import java.util.Objects;
 
 public class App extends Application {
     //按鍵大小、棋盤大小
-    static final int KEY_SIZE = 10;
-    static final int BOARD_SIZE = 11;
+    static final int KEY_SIZE = 10, BOARD_SIZE = 11;
     static Stage stage;
     static Group g;
     static Scene scene;
     static MyButton[][] buttons = new MyButton[BOARD_SIZE + 2][BOARD_SIZE + 2];
-    static String[][] gridColor = new String[BOARD_SIZE + 2][BOARD_SIZE + 2];
     static int[][] board = new int[BOARD_SIZE][BOARD_SIZE];
     static Button swapButton;
     static int round = 0;
@@ -33,15 +31,14 @@ public class App extends Application {
 
     public static void reinitialize(){
         buttons = new MyButton[BOARD_SIZE + 2][BOARD_SIZE + 2];
-        gridColor = new String[BOARD_SIZE + 2][BOARD_SIZE + 2];
         keyBackground = new Polygon[BOARD_SIZE + 2][BOARD_SIZE + 2];
         round = 0;
         pos = new int[2];
     }
     public static class MyButton extends Button{
-        MyButton(int i, int j, Polygon keyBackground, String buttonType){
+        MyButton(int i, int j, Polygon keyBackground){
             //按鈕風格設定
-            this.getStylesheets().add(getClass().getResource(buttonType).toExternalForm());
+            this.getStylesheets().add(getClass().getResource("normalButton.css").toExternalForm());
             //按鈕形狀設定成六邊形
             this.setShape(keyBackground);
         }
@@ -54,8 +51,14 @@ public class App extends Application {
                 pos[0] = i;
                 pos[1] = j;
                 switch (round % 2) {
-                    case 0 -> keyBackground[i][j].setFill(Color.RED);
-                    case 1 -> keyBackground[i][j].setFill(Color.BLUE);
+                    case 0 -> {
+                        keyBackground[i][j].setFill(Color.RED);
+                        board[i - 1][j - 1] = 1;
+                    }
+                    case 1 -> {
+                        keyBackground[i][j].setFill(Color.BLUE);
+                        board[i - 1][j - 1] = -1;
+                    }
                 }
                 buttons[i][j].setOnAction(null);
                 round++;
@@ -96,15 +99,21 @@ public class App extends Application {
                 for (int j = 0; j < BOARD_SIZE + 2; j++) {
                     //填入邊界六邊形
                     StackPane stack = new StackPane();
-                    if (j == 0 || j == BOARD_SIZE + 1) {
+                    if (i == 0 && j == 0 || i == BOARD_SIZE + 1 && j == BOARD_SIZE + 1) {
+                        keyBackground[i][j] = new Hexagon("white");
+                        buttons[i][j] = new MyButton(i, j, keyBackground[i][j]);
+                    }
+                    else if (j == 0 || j == BOARD_SIZE + 1) {
                         keyBackground[i][j] = new Hexagon("blue");
-                        buttons[i][j] = new MyButton(i, j, keyBackground[i][j], "normalButton.css");
-                    } else if (i == 0 || i == BOARD_SIZE + 1) {
+                        buttons[i][j] = new MyButton(i, j, keyBackground[i][j]);
+                    }
+                    else if (i == 0 || i == BOARD_SIZE + 1) {
                         keyBackground[i][j] = new Hexagon("red");
-                        buttons[i][j] = new MyButton(i, j, keyBackground[i][j], "normalButton.css");
-                    }else{
+                        buttons[i][j] = new MyButton(i, j, keyBackground[i][j]);
+                    }
+                    else{
                         keyBackground[i][j] = new Hexagon("gray");
-                        buttons[i][j] = new MyButton(i, j, keyBackground[i][j], "normalButton.css");
+                        buttons[i][j] = new MyButton(i, j, keyBackground[i][j]);
                         buttons[i][j].enableOnClick(i, j);
                     }
                     stack.getChildren().addAll(keyBackground[i][j], buttons[i][j]);
