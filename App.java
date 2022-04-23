@@ -36,7 +36,7 @@ public class App extends Application {
         pos = new int[2];
     }
     public static class MyButton extends Button{
-        MyButton(int i, int j, Polygon keyBackground){
+        MyButton(Polygon keyBackground){
             //按鈕風格設定
             this.getStylesheets().add(getClass().getResource("normalButton.css").toExternalForm());
             //按鈕形狀設定成六邊形
@@ -96,30 +96,28 @@ public class App extends Application {
                 HBox hBox;
                 //每一列是一個hbox
                 hBox = new HBox();
+
                 for (int j = 0; j < BOARD_SIZE + 2; j++) {
                     //填入邊界六邊形
                     StackPane stack = new StackPane();
                     if (i == 0 && j == 0 || i == BOARD_SIZE + 1 && j == BOARD_SIZE + 1) {
                         keyBackground[i][j] = new Hexagon("white");
-                        buttons[i][j] = new MyButton(i, j, keyBackground[i][j]);
-                    }
-                    else if (j == 0 || j == BOARD_SIZE + 1) {
+                        buttons[i][j] = new MyButton(keyBackground[i][j]);
+                    } else if (j == 0 || j == BOARD_SIZE + 1) {
                         keyBackground[i][j] = new Hexagon("blue");
-                        buttons[i][j] = new MyButton(i, j, keyBackground[i][j]);
-                    }
-                    else if (i == 0 || i == BOARD_SIZE + 1) {
+                        buttons[i][j] = new MyButton(keyBackground[i][j]);
+                    } else if (i == 0 || i == BOARD_SIZE + 1) {
                         keyBackground[i][j] = new Hexagon("red");
-                        buttons[i][j] = new MyButton(i, j, keyBackground[i][j]);
-                    }
-                    else{
+                        buttons[i][j] = new MyButton(keyBackground[i][j]);
+                    } else {
                         keyBackground[i][j] = new Hexagon("gray");
-                        buttons[i][j] = new MyButton(i, j, keyBackground[i][j]);
+                        buttons[i][j] = new MyButton(keyBackground[i][j]);
                         buttons[i][j].enableOnClick(i, j);
                     }
                     stack.getChildren().addAll(keyBackground[i][j], buttons[i][j]);
                     hBox.getChildren().add(stack);
                 }
-                hBox.relocate(Math.pow(3.0, 1 / 2)/2*KEY_SIZE*i + i*4, 3.0/2 * KEY_SIZE*i);
+                hBox.relocate(Math.pow(3.0, 1 / 2) / 2 * KEY_SIZE * i + i * 4, 3.0 / 2 * KEY_SIZE * i);
                 g.getChildren().add(hBox);
             }
             scene = new Scene(g,3, 3);
