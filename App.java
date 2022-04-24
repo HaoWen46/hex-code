@@ -34,7 +34,7 @@ public class App extends Application {
     public static void reinitialize(){
         buttons = new MyButton[BOARD_SIZE + 2][BOARD_SIZE + 2];
         keyBackground = new Polygon[BOARD_SIZE + 2][BOARD_SIZE + 2];
-        board = new int[][];
+        board = new int[BOARD_SIZE + 2][BOARD_SIZE + 2];
         round = 0;
         records = new ArrayList<>();
     }
@@ -54,12 +54,12 @@ public class App extends Application {
                 if (round % 2 == 0) {
                     keyBackground[i][j].setFill(Color.RED);
                     board[i][j] = 1;
-                    if (winner(0)) System.out.println("Red is the winner");
+                    if (winner("red")) System.out.println("Red is the winner");
                 }
                 else {
                     keyBackground[i][j].setFill(Color.BLUE);
                     board[i][j] = -1;
-                    if (winner(1)) System.out.println("Blue is the winner");
+                    if (winner("blue")) System.out.println("Blue is the winner");
                 }
 
                 buttons[i][j].setOnAction(null);
@@ -75,10 +75,8 @@ public class App extends Application {
             Double[] points = new Double[12];
             for (int q = 0; q < 6; q++){
                 //使用極座標參數式畫多邊形
-                double x = Math.cos(Math.PI/3.0*q+Math.PI/6) * KEY_SIZE;
-                double y = Math.sin(Math.PI/3.0*q+Math.PI/6) * KEY_SIZE;
-                points[q*2] = x ;
-                points[q*2+1] = y ;
+                points[q*2] = Math.cos(Math.PI/3.0*q+Math.PI/6) * KEY_SIZE;
+                points[q*2+1] = Math.sin(Math.PI/3.0*q+Math.PI/6) * KEY_SIZE;
             }
             this.getPoints().addAll(points);
             //填色
@@ -113,7 +111,7 @@ public class App extends Application {
                     stack.getChildren().addAll(keyBackground[i][j], buttons[i][j]);
                     hBox.getChildren().add(stack);
                 }
-                hBox.relocate(Math.pow(3.0, 1/2) / 2 * KEY_SIZE * i + i * 4, 3.0 / 2 * KEY_SIZE * i);
+                hBox.relocate((Math.pow(3d, 1/2) / 2 * KEY_SIZE + 4) * i, 1.5 * KEY_SIZE * i);
                 group.getChildren().add(hBox);
             }
             scene = new Scene(group,3, 3);
@@ -154,17 +152,19 @@ public class App extends Application {
     }
 
     //勝負判斷
-    public static boolean winner(int n) {
+    public static boolean winner(String player) {
         boolean[][] visited = new boolean[BOARD_SIZE + 2][BOARD_SIZE + 2];
-        Stack<int[]> stack;
-        stack = new Stack<>();
-        int color = (n == 0)? 1 : -1;
+        Stack<int[]> stack = new Stack<>();
+        int x = 1, y = 1, color = (player.equals("red")) ? 1 : -1;
         // 將n的處理一般化
         for (int t = 1; t <= BOARD_SIZE; t++) { //原本沒判定邊最後一排
-            int x = (n==0)?1:t, y = (n==0)?t:1;
             if (board[x][y] == color) {
                 visited[x][y] = true;
                 stack.push(new int[]{x, y});
+            }
+            switch (player) {
+                case "red" -> y++;
+                case "blue" -> x++;
             }
         }
         if (stack.empty()) return false;
@@ -172,7 +172,7 @@ public class App extends Application {
         // check the presence of neighbors and DFS
         do {
             // return true if having reached the bottom row or the rightmost column
-            if (curr[n] == BOARD_SIZE) return true; // 0, 1替換成n
+            if (curr[(player.equals("red")) ? 0 : 1] == BOARD_SIZE) return true;
             boolean hasNeighbor = false;
 
             for (int i = 0; i < 6; i++) {
@@ -187,6 +187,7 @@ public class App extends Application {
             }
             if (!hasNeighbor) {
                 if (stack.size() <= 1) return false;
+                // move back to the previous position if it has no neighbor
                 stack.pop();
             }
 
