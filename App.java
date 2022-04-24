@@ -24,16 +24,17 @@ public class App extends Application {
     static Stage stage;
     static Group group;
     static Scene scene;
+    static Polygon[][] keyBackground = new Polygon[BOARD_SIZE + 2][BOARD_SIZE + 2];
     static MyButton[][] buttons = new MyButton[BOARD_SIZE + 2][BOARD_SIZE + 2];
     static int[][] board = new int[BOARD_SIZE + 2][BOARD_SIZE + 2];
     static Button swapButton;
     static int round = 0;
     static ArrayList<int[]> records = new ArrayList<>();
-    static Polygon[][] keyBackground = new Polygon[BOARD_SIZE + 2][BOARD_SIZE + 2];
 
     public static void reinitialize(){
         buttons = new MyButton[BOARD_SIZE + 2][BOARD_SIZE + 2];
         keyBackground = new Polygon[BOARD_SIZE + 2][BOARD_SIZE + 2];
+        board = new int[][];
         round = 0;
         records = new ArrayList<>();
     }
@@ -50,21 +51,15 @@ public class App extends Application {
                 swapButton.setDisable(round != 0);
                 System.out.printf("[%d, %d], %s\n", i, j, (round % 2 == 0)? "RED" : "BLUE");
                 records.add(new int[]{i, j});
-                switch (round % 2) {
-                    case 0 -> {
-                        keyBackground[i][j].setFill(Color.RED);
-                        board[i][j] = 1;
-                        if (winner(0)) {
-                            System.out.println("Red is the winner");
-                        }
-                    }
-                    case 1 -> {
-                        keyBackground[i][j].setFill(Color.BLUE);
-                        board[i][j] = -1;
-                        if (winner(1)) {
-                            System.out.println("Blue is the winner");
-                        }
-                    }
+                if (round % 2 == 0) {
+                    keyBackground[i][j].setFill(Color.RED);
+                    board[i][j] = 1;
+                    if (winner(0)) System.out.println("Red is the winner");
+                }
+                else {
+                    keyBackground[i][j].setFill(Color.BLUE);
+                    board[i][j] = -1;
+                    if (winner(1)) System.out.println("Blue is the winner");
                 }
 
                 buttons[i][j].setOnAction(null);
@@ -163,11 +158,10 @@ public class App extends Application {
         boolean[][] visited = new boolean[BOARD_SIZE + 2][BOARD_SIZE + 2];
         Stack<int[]> stack;
         stack = new Stack<>();
-        int x, y, color = (n == 0)? 1 : -1;
+        int color = (n == 0)? 1 : -1;
         // 將n的處理一般化
-        for (int z = 1; z <= BOARD_SIZE; z++) { //原本沒判定邊最後一排
-            x = (n==0)?1:z;
-            y = (n==0)?z:1;
+        for (int t = 1; t <= BOARD_SIZE; t++) { //原本沒判定邊最後一排
+            int x = (n==0)?1:t, y = (n==0)?t:1;
             if (board[x][y] == color) {
                 visited[x][y] = true;
                 stack.push(new int[]{x, y});
