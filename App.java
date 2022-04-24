@@ -136,6 +136,8 @@ public class App extends Application {
         swapButton.setOnAction((ActionEvent e) -> {
             System.out.println("swapped");
             int[] r = records.get(records.size() - 1);
+            board[r[0]][r[1]] = 0;
+            board[r[1]][r[0]] = -1;
             keyBackground[r[0]][r[1]].setFill(Color.LIGHTGRAY);
             keyBackground[r[1]][r[0]].setFill(Color.BLUE);
             buttons[r[0]][r[1]].enableOnClick(r[0], r[1]);
@@ -166,75 +168,43 @@ public class App extends Application {
 
     public static boolean winner(int n) {
         boolean[][] visited = new boolean[BOARD_SIZE + 2][BOARD_SIZE + 2];
-        Stack<int[]> stack = new Stack<>();
+        Stack<int[]> stack;
+        stack = new Stack<>();
+        int x, y, color;
+        // 將n的處理一般化
+        color = (n==0)?1:-1;
+        for (int z = 1; z <= BOARD_SIZE; z++) { //原本沒判定邊最後一排
+            x = (n==0)?1:z;
+            y = (n==0)?z:1;
+            if (board[x][y] == color) {
+                visited[x][y] = true;
+                stack.push(new int[]{x, y});
+            }
+        }
+        if (stack.empty()) return false;
+        int[] curr = new int[]{stack.peek()[0], stack.peek()[1]};
+        // check the presence of neighbors and DFS
+        do {
+            // return true if having reached the bottom row or the rightmost column
+            if (curr[n] == BOARD_SIZE) return true; // 0, 1替換成n
+            boolean hasNeighbor = false;
 
-        // check if red is the winner (round is an even number)
-        if (n == 0) {
-            for (int z = 1; z < BOARD_SIZE; z++) {
-                if (board[1][z] == 1) {
-                    visited[1][z] = true;
-                    stack.push(new int[]{1, z});
+            for (int i = 0; i < 6; i++) {
+                int A = (i == 0 || i == 1) ? -1 : (i == 2 || i == 5) ? 0 : 1;
+                int B = (i == 4 || i == 5) ? -1 : (i == 0 || i == 3) ? 0 : 1;
+                if (!visited[curr[0] + A][curr[1] + B] && board[curr[0] + A][curr[1] + B] == color) {
+                    hasNeighbor = true;
+                    visited[curr[0] + A][curr[1] + B] = true;
+                    stack.push(new int[]{curr[0] + A, curr[1] + B});
+                    break;
                 }
             }
-            if (stack.empty()) return false;
-            int[] curr = new int[]{stack.peek()[0], stack.peek()[1]};
-            // check the presence of neighbors and DFS
-            do {
-                // return true if having reached the bottom row
-                if (curr[0] == BOARD_SIZE) return true;
-                boolean hasNeighbor = false;
-
-                for (int i = 0; i < 6; i++) {
-                    int A = (i == 0 || i == 1)? -1 : (i == 2 || i == 5)? 0 : 1;
-                    int B = (i == 4 || i == 5)? -1 : (i == 0 || i == 3)? 0 : 1;
-                    if (!visited[curr[0] + A][curr[1] + B] && board[curr[0] + A][curr[1] + B] == 1) {
-                        hasNeighbor = true;
-                        visited[curr[0] + A][curr[1] + B] = true;
-                        stack.push(new int[]{curr[0] + A, curr[1] + B});
-                        break;
-                    }
-                }
-                if (!hasNeighbor) {
-                    if (stack.size() <= 1) return false;
-                    stack.pop();
-                }
-                curr = new int[]{stack.peek()[0], stack.peek()[1]};
-            } while (!stack.empty());
-        }
-
-        // check if blue is the winner
-        else if (n == 1) {
-            for (int z = 1; z < BOARD_SIZE; z++) {
-                if (board[z][1] == 1) {
-                    visited[z][1] = true;
-                    stack.push(new int[]{z, 1});
-                }
+            if (!hasNeighbor) {
+                if (stack.size() <= 1) return false;
+                stack.pop();
             }
-            if (stack.empty()) return false;
-            int[] curr = new int[]{stack.peek()[0], stack.peek()[1]};
-            // check the presence of neighbors and DFS
-            do {
-                // return true if having reached the rightmost column
-                if (curr[1] == BOARD_SIZE) return true;
-                boolean hasNeighbor = false;
-
-                for (int i = 0; i < 6; i++) {
-                    int A = (i == 0 || i == 1)? -1 : (i == 2 || i == 5)? 0 : 1;
-                    int B = (i == 4 || i == 5)? -1 : (i == 0 || i == 3)? 0 : 1;
-                    if (!visited[curr[0] + A][curr[1] + B] && board[curr[0] + A][curr[1] + B] == -1) {
-                        hasNeighbor = true;
-                        visited[curr[0] + A][curr[1] + B] = true;
-                        stack.push(new int[]{curr[0] + A, curr[1] + B});
-                        break;
-                    }
-                }
-                if (!hasNeighbor) {
-                    if (stack.size() <= 1) return false;
-                    stack.pop();
-                }
-                curr = new int[]{stack.peek()[0], stack.peek()[1]};
-            } while (!stack.empty());
-        }
+            curr = new int[]{stack.peek()[0], stack.peek()[1]};
+        } while (!stack.empty());
         return false;
     }
 
