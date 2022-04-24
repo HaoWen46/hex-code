@@ -107,19 +107,13 @@ public class App extends Application {
                 for (int j = 0; j < BOARD_SIZE + 2; j++) {
                     //填入邊界六邊形
                     StackPane stack = new StackPane();
-                    boolean hasAction = false;
-                    if (i == 0 && j == 0 || i == BOARD_SIZE + 1 && j == BOARD_SIZE + 1) {
-                        keyBackground[i][j] = new Hexagon("white");
-                    } else if (j == 0 || j == BOARD_SIZE + 1) {
-                        keyBackground[i][j] = new Hexagon("blue");
-                    } else if (i == 0 || i == BOARD_SIZE + 1) {
-                        keyBackground[i][j] = new Hexagon("red");
-                    } else {
-                        keyBackground[i][j] = new Hexagon("gray");
-                        hasAction = true;
-                    }
+                    String newColor = ((i == 0 || i == BOARD_SIZE + 1) && i == j) ? "white" :
+                                    (j == 0 || j == BOARD_SIZE + 1) ? "blue" :
+                                    (i == 0 || i == BOARD_SIZE + 1) ? "red" : "gray";
+
+                    keyBackground[i][j] = new Hexagon(newColor);
                     buttons[i][j] = new MyButton(keyBackground[i][j]);
-                    if (hasAction) buttons[i][j].enableOnClick(i, j);
+                    if (newColor.equals("gray")) buttons[i][j].enableOnClick(i, j);
 
                     stack.getChildren().addAll(keyBackground[i][j], buttons[i][j]);
                     hBox.getChildren().add(stack);
@@ -161,18 +155,16 @@ public class App extends Application {
         });
         group.getChildren().add(concedeButton);
 
-        //勝負判斷
-        //
         stage.show();
     }
 
+    //勝負判斷
     public static boolean winner(int n) {
         boolean[][] visited = new boolean[BOARD_SIZE + 2][BOARD_SIZE + 2];
         Stack<int[]> stack;
         stack = new Stack<>();
-        int x, y, color;
+        int x, y, color = (n == 0)? 1 : -1;
         // 將n的處理一般化
-        color = (n==0)?1:-1;
         for (int z = 1; z <= BOARD_SIZE; z++) { //原本沒判定邊最後一排
             x = (n==0)?1:z;
             y = (n==0)?z:1;
@@ -203,8 +195,10 @@ public class App extends Application {
                 if (stack.size() <= 1) return false;
                 stack.pop();
             }
+
             curr = new int[]{stack.peek()[0], stack.peek()[1]};
         } while (!stack.empty());
+
         return false;
     }
 
