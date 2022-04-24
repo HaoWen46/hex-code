@@ -14,6 +14,8 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Objects;
+import java.util.Stack;
 
 
 public class App extends Application {
@@ -23,7 +25,7 @@ public class App extends Application {
     static Group group;
     static Scene scene;
     static MyButton[][] buttons = new MyButton[BOARD_SIZE + 2][BOARD_SIZE + 2];
-    static int[][] board = new int[BOARD_SIZE][BOARD_SIZE];
+    static int[][] board = new int[BOARD_SIZE + 2][BOARD_SIZE + 2];
     static Button swapButton;
     static int round = 0;
     static ArrayList<int[]> records = new ArrayList<>();
@@ -38,7 +40,7 @@ public class App extends Application {
     public static class MyButton extends Button{
         MyButton(Polygon keyBackground){
             //按鈕風格設定
-            this.getStylesheets().add(getClass().getResource("normalButton.css").toExternalForm());
+            this.getStylesheets().add(Objects.requireNonNull(getClass().getResource("normalButton.css")).toExternalForm());
             //按鈕形狀設定成六邊形
             this.setShape(keyBackground);
         }
@@ -51,13 +53,20 @@ public class App extends Application {
                 switch (round % 2) {
                     case 0 -> {
                         keyBackground[i][j].setFill(Color.RED);
-                        board[i - 1][j - 1] = 1;
+                        board[i][j] = 1;
+                        if (winner(0)) {
+                            System.out.println("Red is the winner");
+                        }
                     }
                     case 1 -> {
                         keyBackground[i][j].setFill(Color.BLUE);
-                        board[i - 1][j - 1] = -1;
+                        board[i][j] = -1;
+                        if (winner(1)) {
+                            System.out.println("Blue is the winner");
+                        }
                     }
                 }
+
                 buttons[i][j].setOnAction(null);
                 round++;
                 stage.show();
@@ -121,7 +130,7 @@ public class App extends Application {
             scene = new Scene(group,3, 3);
             stage.setScene(scene);
         }
-        
+
         swapButton = new Button("SWAP");
         swapButton.relocate(BOARD_SIZE*KEY_SIZE*1.5, BOARD_SIZE*KEY_SIZE*1.9);
         swapButton.setOnAction((ActionEvent e) -> {
@@ -136,7 +145,7 @@ public class App extends Application {
         });
         swapButton.setDisable(true);
         group.getChildren().add(swapButton);
-        
+
         //投降按鈕
         Button concedeButton = new Button("CONCEDE");
         concedeButton.relocate(BOARD_SIZE*KEY_SIZE*1.5, BOARD_SIZE*KEY_SIZE*2.1);
@@ -152,11 +161,83 @@ public class App extends Application {
 
         //勝負判斷
         //
-
-
-
         stage.show();
     }
+
+    public static boolean winner(int n) {
+        boolean[][] visited = new boolean[BOARD_SIZE + 2][BOARD_SIZE + 2];
+        Stack<int[]> stack = new Stack<>();
+
+        // check if red is the winner (round is an even number)
+        if (n == 0) {
+            for (int z = 1; z < BOARD_SIZE; z++) {
+                if (board[1][z] == 1) {
+                    visited[1][z] = true;
+                    stack.push(new int[]{1, z});
+                }
+            }
+            if (stack.empty()) return false;
+            int[] curr = new int[]{stack.peek()[0], stack.peek()[1]};
+            // check the presence of neighbors and DFS
+            do {
+                // return true if having reached the bottom row
+                if (curr[0] == BOARD_SIZE) return true;
+                boolean hasNeighbor = false;
+
+                for (int i = 0; i < 6; i++) {
+                    int A = (i == 0 || i == 1)? -1 : (i == 2 || i == 5)? 0 : 1;
+                    int B = (i == 4 || i == 5)? -1 : (i == 0 || i == 3)? 0 : 1;
+                    if (!visited[curr[0] + A][curr[1] + B] && board[curr[0] + A][curr[1] + B] == 1) {
+                        hasNeighbor = true;
+                        visited[curr[0] + A][curr[1] + B] = true;
+                        stack.push(new int[]{curr[0] + A, curr[1] + B});
+                        break;
+                    }
+                }
+                if (!hasNeighbor) {
+                    if (stack.size() <= 1) return false;
+                    stack.pop();
+                }
+                curr = new int[]{stack.peek()[0], stack.peek()[1]};
+            } while (!stack.empty());
+        }
+
+        // check if blue is the winner
+        else if (n == 1) {
+            for (int z = 1; z < BOARD_SIZE; z++) {
+                if (board[z][1] == 1) {
+                    visited[z][1] = true;
+                    stack.push(new int[]{z, 1});
+                }
+            }
+            if (stack.empty()) return false;
+            int[] curr = new int[]{stack.peek()[0], stack.peek()[1]};
+            // check the presence of neighbors and DFS
+            do {
+                // return true if having reached the rightmost column
+                if (curr[1] == BOARD_SIZE) return true;
+                boolean hasNeighbor = false;
+
+                for (int i = 0; i < 6; i++) {
+                    int A = (i == 0 || i == 1)? -1 : (i == 2 || i == 5)? 0 : 1;
+                    int B = (i == 4 || i == 5)? -1 : (i == 0 || i == 3)? 0 : 1;
+                    if (!visited[curr[0] + A][curr[1] + B] && board[curr[0] + A][curr[1] + B] == -1) {
+                        hasNeighbor = true;
+                        visited[curr[0] + A][curr[1] + B] = true;
+                        stack.push(new int[]{curr[0] + A, curr[1] + B});
+                        break;
+                    }
+                }
+                if (!hasNeighbor) {
+                    if (stack.size() <= 1) return false;
+                    stack.pop();
+                }
+                curr = new int[]{stack.peek()[0], stack.peek()[1]};
+            } while (!stack.empty());
+        }
+        return false;
+    }
+
     @Override
     public void start(Stage primaryStage) throws IOException {
         stage = primaryStage;
