@@ -2,7 +2,6 @@ package javahex.hex;
 
 import javafx.application.Application;
 
-import javafx.event.ActionEvent;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -27,8 +26,8 @@ public class App extends Application {
     static Polygon[][] keyBackground = new Polygon[BOARD_SIZE + 2][BOARD_SIZE + 2];
     static MyButton[][] buttons = new MyButton[BOARD_SIZE + 2][BOARD_SIZE + 2];
     static int[][] board = new int[BOARD_SIZE + 2][BOARD_SIZE + 2];
-    static Button swapButton;
     static int round = 0;
+    static Button swapButton, concedeButton;
     static ArrayList<int[]> records = new ArrayList<>();
 
     public static void reinitialize(){
@@ -47,19 +46,19 @@ public class App extends Application {
         }
         //觸發事件
         public void enableOnClick(int i, int j) {
-            this.setOnAction((ActionEvent e) -> {
+            this.setOnAction(actionEvent -> {
                 swapButton.setDisable(round != 0);
                 System.out.printf("[%d, %d], %s\n", i, j, (round % 2 == 0)? "RED" : "BLUE");
                 records.add(new int[]{i, j});
                 if (round % 2 == 0) {
                     keyBackground[i][j].setFill(Color.RED);
                     board[i][j] = 1;
-                    if (winner("red")) System.out.println("Red is the winner");
+                    if (winner("red")) winningAction("Red");
                 }
                 else {
                     keyBackground[i][j].setFill(Color.BLUE);
                     board[i][j] = -1;
-                    if (winner("blue")) System.out.println("Blue is the winner");
+                    if (winner("blue")) winningAction("Blue");
                 }
 
                 buttons[i][j].setOnAction(null);
@@ -89,38 +88,36 @@ public class App extends Application {
         }
     }
 
-    public void drawDefault(){
-        if (round == 0) {
-            group = new Group();
-            for (int i = 0; i < BOARD_SIZE + 2; i++) {
-                HBox hBox;
-                //每一列是一個hBox
-                hBox = new HBox();
+    public static void drawDefault(){
+        group = new Group();
+        for (int i = 0; i < BOARD_SIZE + 2; i++) {
+            HBox hBox;
+            //每一列是一個hBox
+            hBox = new HBox();
 
-                for (int j = 0; j < BOARD_SIZE + 2; j++) {
-                    //填入邊界六邊形
-                    StackPane stack = new StackPane();
-                    String newColor = ((i == 0 || i == BOARD_SIZE + 1) && i == j) ? "white" :
-                                    (j == 0 || j == BOARD_SIZE + 1) ? "blue" :
-                                    (i == 0 || i == BOARD_SIZE + 1) ? "red" : "gray";
+            for (int j = 0; j < BOARD_SIZE + 2; j++) {
+                //填入邊界六邊形
+                StackPane stack = new StackPane();
+                String newColor = ((i == 0 || i == BOARD_SIZE + 1) && i == j) ? "white" :
+                                (j == 0 || j == BOARD_SIZE + 1) ? "blue" :
+                                (i == 0 || i == BOARD_SIZE + 1) ? "red" : "gray";
 
-                    keyBackground[i][j] = new Hexagon(newColor);
-                    buttons[i][j] = new MyButton(keyBackground[i][j]);
-                    if (newColor.equals("gray")) buttons[i][j].enableOnClick(i, j);
+                keyBackground[i][j] = new Hexagon(newColor);
+                buttons[i][j] = new MyButton(keyBackground[i][j]);
+                if (newColor.equals("gray")) buttons[i][j].enableOnClick(i, j);
 
-                    stack.getChildren().addAll(keyBackground[i][j], buttons[i][j]);
-                    hBox.getChildren().add(stack);
-                }
-                hBox.relocate((Math.pow(3d, 1/2) / 2 * KEY_SIZE + 4) * i, 1.5 * KEY_SIZE * i);
-                group.getChildren().add(hBox);
+                stack.getChildren().addAll(keyBackground[i][j], buttons[i][j]);
+                hBox.getChildren().add(stack);
             }
-            scene = new Scene(group,3, 3);
-            stage.setScene(scene);
+            hBox.relocate((Math.pow(3d, 1/2) / 2 * KEY_SIZE + 4) * i, 1.5 * KEY_SIZE * i);
+            group.getChildren().add(hBox);
         }
+        scene = new Scene(group,3, 3);
+        stage.setScene(scene);
 
         swapButton = new Button("SWAP");
         swapButton.relocate(BOARD_SIZE*KEY_SIZE*1.5, BOARD_SIZE*KEY_SIZE*1.9);
-        swapButton.setOnAction((ActionEvent e) -> {
+        swapButton.setOnAction(actionEvent -> {
             System.out.println("swapped");
             int[] r = records.get(records.size() - 1);
             board[r[0]][r[1]] = 0;
@@ -136,15 +133,20 @@ public class App extends Application {
         group.getChildren().add(swapButton);
 
         //投降按鈕
-        Button concedeButton = new Button("CONCEDE");
+        concedeButton = new Button("CONCEDE");
         concedeButton.relocate(BOARD_SIZE*KEY_SIZE*1.5, BOARD_SIZE*KEY_SIZE*2.1);
-        concedeButton.setOnAction((ActionEvent e) -> {
-            switch (round % 2) {
-                case 0 -> System.out.println("Red concede\nBlue Win");
-                case 1 -> System.out.println("Blue concede\nRed Win");
+        concedeButton.setOnAction(actionEvent-> {
+            if (round == 0) {
+                System.out.println("action failed");
             }
-            reinitialize();
-            drawDefault();
+            else {
+                switch (round % 2) {
+                    case 0 -> System.out.println("Red concede\nBlue Win");
+                    case 1 -> System.out.println("Blue concede\nRed Win");
+                }
+                reinitialize();
+                drawDefault();
+            }
         });
         group.getChildren().add(concedeButton);
 
@@ -169,7 +171,7 @@ public class App extends Application {
         }
         if (stack.empty()) return false;
         int[] curr = new int[]{stack.peek()[0], stack.peek()[1]};
-        // check the presence of neighbors and DFS
+        // check for the presence of neighbors and DFS
         do {
             // return true if having reached the bottom row or the rightmost column
             if (curr[(player.equals("red")) ? 0 : 1] == BOARD_SIZE) return true;
@@ -186,8 +188,8 @@ public class App extends Application {
                 }
             }
             if (!hasNeighbor) {
-                if (stack.size() <= 1) return false;
-                // move back to the previous position if it has no neighbor
+                if (stack.size() <= 1) break;
+                // move back to the previous coordinate if it has no neighbor
                 stack.pop();
             }
 
@@ -195,6 +197,32 @@ public class App extends Application {
         } while (!stack.empty());
 
         return false;
+    }
+
+    public static void winningAction(String player) {
+        System.out.printf("%s is the winner!\n", player);
+        for (int i = 1; i < BOARD_SIZE + 1; i++) {
+            for (int j = 1; j < BOARD_SIZE + 1; j++) {
+                buttons[i][j].setOnAction(null);
+            }
+        }
+        concedeButton.setOnAction(actionEvent -> {
+            System.out.println("Game Over! cannot proceed to concede");
+        });
+        addRestartButton();
+    }
+
+
+    // add a restart button once there is a winner
+    public static void addRestartButton() {
+        Button restart = new Button("Restart");
+        restart.relocate(BOARD_SIZE*KEY_SIZE*0.4, BOARD_SIZE*KEY_SIZE*1.9);
+        restart.setOnAction(actionEvent -> {
+            reinitialize();
+            drawDefault();
+        });
+        group.getChildren().add(restart);
+        stage.show();
     }
 
     @Override
